@@ -21,6 +21,40 @@ def homepage():
     return render_template("index.html")
 
 
+# TAKING ALL DATA
+@app.route("/quiz/<category>", methods=["GET"])
+def get_data(category):
+    global category_data
+
+    conn = mysql.connection
+    cur = conn.cursor()
+
+    cur.execute(f"SELECT * FROM QUIZ WHERE category = {category}")
+
+    all_data = cur.fetchall()
+    category_data = all_data
+    cur.close()
+    return jsonify(all_data)
+
+
+#cheking the answer
+@app.route('/quiz', methods=['POST'])
+def check_answer():
+    global category_data
+    count = 0 
+    data = request.get_json()
+    conn = mysql.connection
+    cur = conn.cursor()
+
+    data = data["answer"]
+    for counter, user_answer in enumerate(data):
+        if category_data[counter][2] == user_answer:
+            count += 1
+    conn.commit()
+    cur.close()
+
+    return count
+
 
 if __name__ == "__main__":
     app.run(debug=True)
